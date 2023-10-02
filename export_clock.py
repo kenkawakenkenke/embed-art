@@ -1,9 +1,9 @@
 from embedart.generate import generate
-from embedart.image import display_image, export_image
+from embedart.image import display_image, export_image, export_movie
 from embedart.clock import draw_clock
 from embedart.prompt import DEFAULT_OIL_PAINTING, DEFAULT_PHOTO
 
-def compute_clock(dir, prompt, seed, time,
+def compute_clock(project, prompt, seed, time,
                 width,
                 height,
                 circle_thickness, 
@@ -28,7 +28,7 @@ def compute_clock(dir, prompt, seed, time,
     if show:
         output_image.show()
     display_image(output_image)
-    export_image(output_image, 'output/{}_{}/out{}.jpg'.format(dir, width, time))
+    export_image(output_image, 'output/{}_{}/out{}.jpg'.format(project, width, time))
     return output_image
 
 if __name__ == '__main__':
@@ -36,6 +36,7 @@ if __name__ == '__main__':
     height = width
     # width = 1024
     # height = 768
+    fps = 4
 
     colorFill="white"
     colorStroke = "black"
@@ -105,12 +106,13 @@ if __name__ == '__main__':
     # compute_clock("clock", create_prompt(time), time, show=True)
     # exit()
 
+    images = []
     for time in range(1440//2):
         prompt = basePrompt
         # prompt = prompt + prompt_time(time)
         print(time, prompt)
 
-        compute_clock(
+        image = compute_clock(
             project,
             prompt,
             seed,
@@ -122,5 +124,11 @@ if __name__ == '__main__':
             minute_hand_thickness, 
             colorFill,
             colorStroke)
+        images.append(image)
+        if len(images)<30 or len(images) % 30 == 0:
+            print("Exporting movie...")
+            export_movie(images, fps, 'output/out_{}_{}.mp4'.format(project, width))
+    
+    export_movie(images, fps, 'output/out_{}_{}.mp4'.format(project, width))
 
 
