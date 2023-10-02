@@ -1,4 +1,5 @@
-DEFAULT_NEGATIVE_PROMPTS = ['ugly','tiling','poorly drawn hands','poorly drawn feet','poorly drawn face','out of frame','extra limbs','disfigured','deformed','body out of frame','bad anatomy','watermark','signature','cut off','low contrast','underexposed','overexposed','bad art','beginner','amateur','distorted face','blurry','draft','grainy']
+DEFAULT_NEGATIVE_PROMPTS = ['ugly','tiling','poorly drawn hands','poorly drawn feet','poorly drawn face','out of frame','extra limbs','disfigured','deformed','body out of frame','bad anatomy','watermark','signature','cut off','low contrast','underexposed','overexposed','bad art','beginner','amateur','distorted face','blurry','draft','grainy',
+                            'worst quality','normal quality','low quality','low res','blurry','text','watermark','logo','banner','extra digits','cropped','jpeg artifacts','signature','username','error','duplicate','ugly','disgusting']
 
 DEFAULT_OIL_PAINTING = ['oil painting','hyperrealistic','artstation','highly detailed',' sharp focus','cinematic lighting']
 

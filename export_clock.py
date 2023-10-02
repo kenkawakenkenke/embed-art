@@ -4,6 +4,8 @@ from embedart.clock import draw_clock
 from embedart.prompt import DEFAULT_OIL_PAINTING, DEFAULT_PHOTO
 
 def compute_clock(dir, prompt, seed, time,
+                width,
+                height,
                 circle_thickness, 
                 hour_hand_thickness,
                 minute_hand_thickness, 
@@ -12,6 +14,8 @@ def compute_clock(dir, prompt, seed, time,
                 show=False):
     input_image = draw_clock(
         time,
+        width,
+        height,
         circle_thickness,
         hour_hand_thickness,
         minute_hand_thickness,
@@ -20,14 +24,19 @@ def compute_clock(dir, prompt, seed, time,
     if show:
         input_image.show()
 
-    output_image = generate(prompt, seed, input_image)
+    output_image = generate(prompt, seed, input_image, width, height)
     if show:
         output_image.show()
     display_image(output_image)
-    export_image(output_image, 'output/{}/out{}.png'.format(dir, time))
+    export_image(output_image, 'output/{}_{}/out{}.jpg'.format(dir, width, time))
     return output_image
 
 if __name__ == '__main__':
+    width = 512
+    height = width
+    # width = 1024
+    # height = 768
+
     colorFill="white"
     colorStroke = "black"
     circle_thickness = 0
@@ -105,7 +114,9 @@ if __name__ == '__main__':
             project,
             prompt,
             seed,
-            time, 
+            time,
+            width,
+            height, 
             circle_thickness, 
             hour_hand_thickness,
             minute_hand_thickness, 

@@ -6,7 +6,7 @@ import requests
 from PIL import Image
 
 class ControlnetRequest:
-    def __init__(self, prompt, input_image, seed):
+    def __init__(self, prompt, input_image, seed, width, height):
         # self.url = "http://localhost:7860/sdapi/v1/txt2img"
         self.url = "http://192.168.86.30:7860/sdapi/v1/txt2img"
         self.prompt = promptsToString(prompt)
@@ -18,6 +18,8 @@ class ControlnetRequest:
             "batch_size": 1,
             "steps": 20,
             "seed": self.seed,
+            "width": width,
+            "height": height,
             "cfg_scale": 7,
             "alwayson_scripts": {
                 "controlnet": {
@@ -105,9 +107,9 @@ class ControlnetRequest:
         response = requests.post(url=self.url, json=self.body)
         return response.json()
 
-def generate(prompt, seed, input_image):
+def generate(prompt, seed, input_image, width, height):
     encoded_input = pil_to_b64(input_image)
-    control_net = ControlnetRequest(prompt, encoded_input, seed)
+    control_net = ControlnetRequest(prompt, encoded_input, seed, width, height)
     output = control_net.send_request()
 
     result = output['images'][0]

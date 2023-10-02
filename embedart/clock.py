@@ -24,6 +24,8 @@ def draw_hand(draw, center, angle, length, line_thickness, color):
     )
 
 def draw_clock(time,
+                width=512,
+                height=512,
                 circle_thickness = 0, 
                 hour_hand_thickness = 15,
                 minute_hand_thickness = 10, 
@@ -31,10 +33,11 @@ def draw_clock(time,
                 colorStroke="black"):
     (hours, mins) = divmod(time, 60)
 
-    width, height = 512, 512
+    # width, height = 512, 512
     clock_img = Image.new("RGB", (width, height), colorFill)
     draw = ImageDraw.Draw(clock_img)
-    circle_radius = int(width//2 * 0.9)
+    shorter = min(width, height)
+    circle_radius = int(shorter//2 * 0.9)
     circle_center = (width//2, height//2)
     
     if circle_thickness > 0:
