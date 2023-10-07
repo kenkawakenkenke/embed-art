@@ -4,6 +4,7 @@ import io
 import numpy as np
 import os
 import imageio
+from PIL import Image
 
 def pil_to_cv2(pil_image):
     numpy_image = np.array(pil_image)
@@ -28,6 +29,11 @@ def export_image(image, file_path):
     os.makedirs(dirPath, exist_ok=True)
 
     image.save(file_path)
+
+def read_image(file_path):
+    if os.path.exists(file_path):
+        return Image.open(file_path)
+    return None
 
 def export_movie(images, fps, output_file):
     with imageio.get_writer(output_file, mode='I', fps=fps) as writer:  # adjust fps as needed

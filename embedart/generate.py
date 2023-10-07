@@ -1,5 +1,5 @@
-from embedart.prompt import promptsToString, DEFAULT_NEGATIVE_PROMPTS
-from embedart.image import pil_to_b64
+from prompt import promptsToString, DEFAULT_NEGATIVE_PROMPTS
+from image import pil_to_b64
 import io
 import base64
 import requests
@@ -7,8 +7,8 @@ from PIL import Image
 
 class ControlnetRequest:
     def __init__(self, prompt, input_image, seed, width, height):
-        # self.url = "http://localhost:7860/sdapi/v1/txt2img"
-        self.url = "http://192.168.86.30:7860/sdapi/v1/txt2img"
+        self.url = "http://localhost:7860/sdapi/v1/txt2img"
+        # self.url = "http://192.168.86.30:7860/sdapi/v1/txt2img"
         self.prompt = promptsToString(prompt)
         self.seed = seed
         self.input_image = input_image
