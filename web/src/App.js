@@ -1,9 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import logo from './logo.svg';
 import './App.css';
-import { storage } from './firebase';
-import { useSpring, useSpringValue, animated } from 'react-spring';
 
 const usePrefetchImages = (imageUrls) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -34,15 +31,16 @@ const usePrefetchImages = (imageUrls) => {
   return isLoaded;
 };
 
+function imageIndexForDate(date) {
+  const hours = date.getHours() % 12;
+  const minutes = date.getMinutes();
+  const seconds = date.getSeconds();
+  return hours * 60 + minutes;
+  // return (minutes % 12) * 60 + seconds;
+}
 
-const CenterSquareSpanningImage = ({ src }) => {
-  const [index, setIndex] = useState(0);
+const CenterSquareSpanningImage = ({ imageUrl }) => {
   const imgRef = useRef(null);
-  const startTime = useRef(Date.now());
-  const duration = 3000;  // Animation duration in milliseconds
-
-  const imageUrls = Array.from({ length: 60 }, (_, i) => `https://storage.googleapis.com/hidden-clock/factory_768_576/out${i}.jpg`);
-  const isLoaded = usePrefetchImages(imageUrls);
 
   const resizeImage = () => {
     const img = imgRef.current;
@@ -58,12 +56,66 @@ const CenterSquareSpanningImage = ({ src }) => {
     }
   };
 
+  useEffect(() => {
+    window.addEventListener('resize', resizeImage);
+    resizeImage();  // Initial resize
+
+    return () => {
+      window.removeEventListener('resize', resizeImage);
+    };
+  }, []);
+
+  return (
+    <img ref={imgRef} src={imageUrl} alt="Full Screen" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+  );
+};
+
+const useCurrentMinuteOfDay = () => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(imageIndexForDate(new Date()));
+
+  useEffect(() => {
+    const checkTimeChange = () => {
+      const now = new Date();
+      const newIndex = imageIndexForDate(now);
+      if (newIndex !== currentImageIndex) {
+        setCurrentImageIndex(newIndex);
+      }
+    };
+    const intervalId = setTimeout(checkTimeChange, 10 * 1000);
+    // const intervalId = setInterval(checkTimeChange, 100);
+    return () => {
+      clearInterval(intervalId);  // Clear the interval when the component is unmounted
+    }
+  }, [currentImageIndex]);
+
+  return currentImageIndex;
+}
+
+function imageUrl(minuteOfDay) {
+  return `https://storage.googleapis.com/hidden-clock/factory_768_576/out${minuteOfDay % 720}.jpg`
+}
+
+const useLoadAnimation = (minuteOfDay) => {
+  const animationStartMinuteOfDay = useRef(minuteOfDay);
+
+  const [index, setIndex] = useState(0);
+
+  const startTime = useRef(Date.now());
+  const duration = 1000;  // Animation duration in milliseconds
+
+  const backTrackLength = 38;
+  const imageUrls = Array.from({ length: backTrackLength }, (_, i) => {
+    const index = ((animationStartMinuteOfDay.current % 720) - (backTrackLength - 1) + i + 720) % 720;
+    return imageUrl(index);
+  });
+  const isLoaded = usePrefetchImages(imageUrls);
+
   const animate = () => {
     const elapsed = Date.now() - startTime.current;
     const t = Math.min(elapsed / duration, 1);  // Normalize time to [0, 1]
     // const easedT = t * (2 - t);  // Ease out quad easing function
     // const easedT = 1 - Math.pow(1 - t, 12);
-    const easedT = 1 - Math.pow(1 - t, 2);
+    const easedT = 1 - Math.pow(1 - t, 4);
     setIndex(Math.min(imageUrls.length - 1, Math.round(easedT * imageUrls.length)));
 
     if (elapsed < duration) {
@@ -74,36 +126,34 @@ const CenterSquareSpanningImage = ({ src }) => {
   useEffect(() => {
     if (isLoaded) {
       startTime.current = Date.now();
-      window.addEventListener('resize', resizeImage);
-      resizeImage();  // Initial resize
-      animate();  // Start animation
-
-      return () => {
-        window.removeEventListener('resize', resizeImage);
-      };
+      animate();
     }
   }, [isLoaded]);
 
-  console.log(index);
-  const imageUrl = `https://storage.googleapis.com/hidden-clock/out${index}.jpg`;
+  return {
+    isLoaded,
+    imageUrl: index >= imageUrls.length - 1 ? imageUrl(minuteOfDay) : imageUrls[index],
+  };
+};
 
-  if (!isLoaded) {
+const ClockPage = ({ }) => {
+  const minuteOfDay = useCurrentMinuteOfDay();
+
+  const animationInfo = useLoadAnimation(minuteOfDay);
+
+  if (!animationInfo.isLoaded) {
     return (<div>Yo</div>);
   }
 
   return (
-    <div>
-      <div>index:{index}</div>
-      <animated.img ref={imgRef} src={imageUrl} alt="Full Screen" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
-    </div>
+    <CenterSquareSpanningImage imageUrl={animationInfo.imageUrl} />
   );
 }
 
 function App() {
-  const src = "https://storage.googleapis.com/hidden-clock/out5.jpg";
   return (
     <div className="App">
-      <CenterSquareSpanningImage src={src} />
+      <ClockPage />
     </div>
   );
 }
