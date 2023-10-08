@@ -162,13 +162,13 @@ if __name__ == '__main__':
         #          colorStroke = "gray"),
 
         Scenario(project = "beach",
-                 prompt = ['beautiful beach with palm trees', 'summery', 'island', 'cinematic']+DEFAULT_PHOTO,
+                 prompt = ['beautiful beach with palm trees', 'summer', 'island', 'cinematic']+DEFAULT_PHOTO,
                 #  base_hour_hand_thickness = 8,
                 #  base_minute_hand_thickness = 8, 
                  base_hour_hand_thickness = 15,
                  base_minute_hand_thickness = 10, 
                  colorFill = "white",
-                 colorStroke = "black"),
+                 colorStroke = "gray"),
     ]
 
     for scenario in scenarios:
