@@ -154,19 +154,21 @@ if __name__ == '__main__':
                  colorFill = "black",
                  colorStroke = "lightgray"),
 
-        Scenario(project = "crackedglass",
-                 prompt = ['window with cracked class']+DEFAULT_PHOTO,
-                 base_hour_hand_thickness = 5,
-                 base_minute_hand_thickness = 5, 
-                 colorFill = "white",
-                 colorStroke = "gray"),
+        # Scenario(project = "crackedglass",
+        #          prompt = ['window with cracked glass', 'beautiful', 'transparency', 'clean']+DEFAULT_PHOTO,
+        #          base_hour_hand_thickness = 5,
+        #          base_minute_hand_thickness = 5, 
+        #          colorFill = "white",
+        #          colorStroke = "gray"),
 
         Scenario(project = "beach",
-                 prompt = ['beautiful island beach', 'palm trees']+DEFAULT_PHOTO,
-                 base_hour_hand_thickness = 8,
-                 base_minute_hand_thickness = 8, 
-                 colorFill = "gray",
-                 colorStroke = "white"),
+                 prompt = ['beautiful beach with palm trees', 'summery', 'island', 'cinematic']+DEFAULT_PHOTO,
+                #  base_hour_hand_thickness = 8,
+                #  base_minute_hand_thickness = 8, 
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "white",
+                 colorStroke = "black"),
     ]
 
     for scenario in scenarios:
