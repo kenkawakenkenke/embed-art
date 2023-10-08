@@ -2,183 +2,185 @@ from generate import generate
 from image import display_image, export_image, export_movie, read_image
 from clock import draw_clock
 from prompt import DEFAULT_OIL_PAINTING, DEFAULT_PHOTO
+import argparse
 
-def compute_clock(project, prompt, seed, time,
+parser = argparse.ArgumentParser(description="Export clocks")
+parser.add_argument('--width', type=int, default=512, help="Width of the output")
+parser.add_argument('--height', type=int, default=512, help="Height of the output")
+parser.add_argument('--aspectRatio', type=str, default="", help="Optional:(square|smartphone|laptop) Sets the height to the to the given aspect ratio given the width")
+parser.add_argument('--forceRecomputeAll', type=bool, default=True, help="Force recompute all")
+parser.add_argument('--fps', type=int, default=4, help="fps for the exported movie")
+parser.add_argument('--project', type=str, default="", help="Optional: the project to compute. If not set, computes all projects")
+
+class Scenario:
+    def __init__(self,
+                 project,
+                 prompt,
+                 base_circle_thickness = 0, 
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10,
+                 colorFill = "white",
+                 colorStroke = "black",
+                 seed = -1):
+        self.project = project
+        self.prompt = prompt
+        self.seed = seed
+        self.width = width
+        self.height = height
+        self.base_circle_thickness = base_circle_thickness
+        self.base_hour_hand_thickness = base_hour_hand_thickness
+        self.base_minute_hand_thickness = base_minute_hand_thickness
+        self.colorFill = colorFill
+        self.colorStroke = colorStroke
+
+    def compute_clock(self,
+                       time, 
+                       width, 
+                       height,
+                       show=False,
+                       forceRecompute=True):
+        file_name = 'output/{}_{}_{}/out{}.jpg'.format(self.project, width, height, time)
+        output_image = None
+        if not forceRecompute:
+            output_image = read_image(self.file_name)
+        if output_image == None:
+            input_image = draw_clock(
+                time,
                 width,
                 height,
-                circle_thickness, 
-                hour_hand_thickness,
-                minute_hand_thickness, 
-                colorFill,
-                colorStroke,
-                show=False,
-                forceRecompute=True):
-    file_name = 'output/{}_{}/out{}.jpg'.format(project, width, time)
-    output_image = None
-    if not forceRecompute:
-        output_image = read_image(file_name)
-    if output_image == None:
-        input_image = draw_clock(
-            time,
-            width,
-            height,
-            circle_thickness,
-            hour_hand_thickness,
-            minute_hand_thickness,
-            colorFill,
-            colorStroke)    
-        if show:
-            input_image.show()
-        output_image = generate(prompt, seed, input_image, width, height)
+                self.base_circle_thickness,
+                self.base_hour_hand_thickness,
+                self.base_minute_hand_thickness,
+                self.colorFill,
+                self.colorStroke)
+            if show:
+                input_image.show()
+            output_image = generate(self.prompt, self.seed, input_image, width, height)
 
-    if show:
-        output_image.show()
-    display_image(output_image)
-    export_image(output_image, file_name)
-    return output_image
+        if show:
+            output_image.show()
+        display_image(output_image)
+        export_image(output_image, file_name)
+        return output_image
+    
+    def export_movie(self, images, fps, width):
+        export_movie(images, fps, 'output/out_{}_{}_{}.mp4'.format(self.project, width, height))
+
 
 if __name__ == '__main__':
-    # Testing size
-    width = 512
-    height = width
+    args = parser.parse_args()
 
-    # Prod size
-    width = 768
-    height = width * 768 // 1024
+    width = args.width
+    height = args.height
+    recomputeAll = args.forceRecomputeAll
+    fps = args.fps
+    if args.aspectRatio=="square":
+        height = width
+    elif args.aspectRatio=="smartphone":
+        height = width * 960 // 640
+    elif args.aspectRatio=="laptop":
+        height = width * 1024 // 768
 
-    # Force export even if a file already exists.
-    recomputeAll = True
-    # recomputeAll = False # Uncomment to only compute incrementally.
+    print(f"Args {width}x{height} Recompute all:{recomputeAll} FPS:{fps}")
 
-    fps = 4
+    scenarios = [
+        Scenario(project = "forest",
+                 prompt = ['beautiful forest','trees','flowing stream','rocks']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "white",
+                 colorStroke = "gray"),
 
-    colorFill="white"
-    colorStroke = "black"
-    circle_thickness = 0
-    hour_hand_thickness = 15
-    minute_hand_thickness = 10
-    seed = 135
+        Scenario(project = "nightforest",
+                 prompt = ['beautiful forest at night','trees','flowing stream','rocks']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "black",
+                 colorStroke = "gray"),
 
-    # basePrompt = ['beautiful forest','trees','flowing stream','rocks']+DEFAULT_PHOTO
-    # # basePrompt = ['beautiful forest','trees','flowing stream,rocks','waterfall']+DEFAULT_OIL_PAINTING
-    # project="forest"
-    # colorFill="lightgray"
-    # colorStroke = "black"
-    # hour_hand_thickness = 15
-    # minute_hand_thickness = 10
-    # seed = -1
+        Scenario(project = "factory",
+                 prompt = ['beautiful factory nightscape', 'desolate', 'industrial', 'pipes']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "black",
+                 colorStroke = "white"),
 
-    # basePrompt = ['beautiful factory nightscape', 'desolate', 'industrial', 'pipes']+DEFAULT_PHOTO
-    # project="factory"
-    # colorFill="black"
-    # colorStroke = "white"
-    # hour_hand_thickness = 15
-    # minute_hand_thickness = 10
-    # seed = -1
+        Scenario(project = "aerial",
+                 prompt = ['beautiful aerial photography','from a helicopter','masterpiece','sharp focus','best quality','ultra detailed','wide-angle lens'],
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "white",
+                 colorStroke = "darkgray"),
 
-    # basePrompt = ['beautiful aerial photography','from a helicopter','masterpiece','sharp focus','best quality','ultra detailed','wide-angle lens']
-    # colorFill="white"
-    # colorStroke = "darkgray"
-    # project="aerial"
-    # hour_hand_thickness = 15
-    # minute_hand_thickness = 10
-    # seed = -1
+        Scenario(project = "lightning",
+                 prompt = ['lightning bolt striking a cityscape']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 5,
+                 base_minute_hand_thickness = 5, 
+                 colorFill = "black",
+                 colorStroke = "white"),
 
-    # basePrompt = ['lightning bolt striking a cityscape']+DEFAULT_PHOTO
-    # project="lightning"
-    # colorFill="black"
-    # colorStroke = "white"
-    # hour_hand_thickness = 5
-    # minute_hand_thickness = 5
-    # seed = -1
+        Scenario(project = "magic",
+                 prompt = ['2D game background art of a magical forest','trees','flowing stream,rocks','waterfall'] + DEFAULT_OIL_PAINTING,
+                 base_hour_hand_thickness = 10,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "black",
+                 colorStroke = "gray"),
 
-    # basePrompt = ['2D game background art of a magical forest','trees','flowing stream,rocks','waterfall'] + DEFAULT_OIL_PAINTING
-    # project="magic"
-    # colorFill="black"
-    # colorStroke = "gray"
-    # hour_hand_thickness = 10
-    # minute_hand_thickness = 10
-    # seed = -1
+        Scenario(project = "europe",
+                 prompt = ['petite european town', 'beautiful']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "black",
+                 colorStroke = "black"),
 
-    # basePrompt = ['petite european town', 'beautiful']+DEFAULT_PHOTO
-    # project="europe"
-    # colorFill="white"
-    # colorStroke = "black"
-    # hour_hand_thickness = 15
-    # minute_hand_thickness = 10
-    # seed = -1
+        Scenario(project = "landscape",
+                 prompt = ['breathtaking landscape', 'must-see', 'beautiful']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "lightgray",
+                 colorStroke = "black"),
 
-    # basePrompt = ['breathtaking landscape', 'must-see', 'beautiful']+DEFAULT_PHOTO
-    # project="landscape"
-    # colorFill="lightgray"
-    # colorStroke = "black"
-    # hour_hand_thickness = 15
-    # minute_hand_thickness = 10
-    # seed = -1
+        Scenario(project = "highway",
+                 prompt = ['worlds most scenic roadtrip', 'amazing']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "black",
+                 colorStroke = "white"),
 
-    # basePrompt = ['worlds most scenic roadtrip', 'amazing']+DEFAULT_PHOTO
-    # project="highway"
-    # colorFill="black"
-    # colorStroke = "white"
-    # hour_hand_thickness = 15
-    # minute_hand_thickness = 10
-    # seed = -1
+        Scenario(project = "backstreet",
+                 prompt = ['backstreet', 'night', 'beautiful']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 15,
+                 base_minute_hand_thickness = 10, 
+                 colorFill = "black",
+                 colorStroke = "lightgray"),
 
-    # basePrompt = ['backstreet', 'night', 'beautiful']+DEFAULT_PHOTO
-    # project="backstreet"
-    # colorFill="black"
-    # colorStroke = "lightgray"
-    # hour_hand_thickness = 15
-    # minute_hand_thickness = 10
-    # seed = -1
+        Scenario(project = "crackedglass",
+                 prompt = ['window with cracked class']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 5,
+                 base_minute_hand_thickness = 5, 
+                 colorFill = "white",
+                 colorStroke = "gray"),
 
-    # basePrompt = ['window with cracked class']+DEFAULT_PHOTO
-    # project="crackedglass"
-    # colorFill="white"
-    # colorStroke = "gray"
-    # hour_hand_thickness = 5
-    # minute_hand_thickness = 5
-    # seed = -1
+        Scenario(project = "beach",
+                 prompt = ['beautiful island beach', 'palm trees']+DEFAULT_PHOTO,
+                 base_hour_hand_thickness = 8,
+                 base_minute_hand_thickness = 8, 
+                 colorFill = "white",
+                 colorStroke = "gray"),
+    ]
 
-    basePrompt = ['beautiful island beach']+DEFAULT_PHOTO
-    project="beach"
-    colorFill="white"
-    colorStroke = "gray"
-    hour_hand_thickness = 8
-    minute_hand_thickness = 8
-    seed = -1
+    for scenario in scenarios:
+        if args.project != "" and args.project != scenario.project:
+            continue
 
-    # time = 4*60+44
-    # compute_clock("clock", create_prompt(time), time, show=True)
-    # exit()
-
-    hour_hand_thickness *= height//512
-    minute_hand_thickness *= height//512
-
-    images = []
-    for time in range(1440//2):
-        prompt = basePrompt
-        # prompt = prompt + prompt_time(time)
-        print(time, prompt)
-
-        image = compute_clock(
-            project,
-            prompt,
-            seed,
-            time,
-            width,
-            height, 
-            circle_thickness, 
-            hour_hand_thickness,
-            minute_hand_thickness, 
-            colorFill,
-            colorStroke,
-            forceRecompute = recomputeAll)
-        images.append(image)
-        if len(images)<20 or len(images) % 100 == 0:
-            print("Exporting movie...")
-            export_movie(images, fps, 'output/out_{}_{}.mp4'.format(project, width))
-    
-    export_movie(images, fps, 'output/out_{}_{}.mp4'.format(project, width))
-
+        images = []
+        for time in range(1440//2):
+            print(time, scenario.prompt)
+            images.append(scenario.compute_clock(time, width, height, forceRecompute = recomputeAll))
+            if len(images)<20 or len(images) % 100 == 0:
+                print("Exporting movie...")
+                scenario.export_movie(images, fps, width)
+        
+        scenario.export_movie(images, fps, width)
+        print(f"Done {scenario.project}")
 
