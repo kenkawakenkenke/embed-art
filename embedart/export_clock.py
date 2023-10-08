@@ -165,8 +165,8 @@ if __name__ == '__main__':
                  prompt = ['beautiful island beach', 'palm trees']+DEFAULT_PHOTO,
                  base_hour_hand_thickness = 8,
                  base_minute_hand_thickness = 8, 
-                 colorFill = "white",
-                 colorStroke = "gray"),
+                 colorFill = "gray",
+                 colorStroke = "white"),
     ]
 
     for scenario in scenarios:
@@ -175,7 +175,8 @@ if __name__ == '__main__':
 
         images = []
         for time in range(1440//2):
-            print(time, scenario.prompt)
+            (hours, mins) = divmod(time, 60)
+            print(f"{hours:02d}:{mins:02d} {scenario.prompt}")
             images.append(scenario.compute_clock(time, width, height, forceRecompute = recomputeAll))
             if len(images)<20 or len(images) % 100 == 0:
                 print("Exporting movie...")
