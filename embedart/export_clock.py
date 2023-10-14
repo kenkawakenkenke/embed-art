@@ -8,9 +8,10 @@ parser = argparse.ArgumentParser(description="Export clocks")
 parser.add_argument('--width', type=int, default=512, help="Width of the output")
 parser.add_argument('--height', type=int, default=512, help="Height of the output")
 parser.add_argument('--aspectRatio', type=str, default="", help="Optional:(square|smartphone|laptop) Sets the height to the to the given aspect ratio given the width")
-parser.add_argument('--forceRecomputeAll', type=bool, default=True, help="Force recompute all")
+parser.add_argument('--forceRecomputeAll', type=bool, default=False, help="Force recompute all")
 parser.add_argument('--fps', type=int, default=4, help="fps for the exported movie")
-parser.add_argument('--project', type=str, default="", help="Optional: the project to compute. If not set, computes all projects")
+parser.add_argument('--projects', type=str, default="", help="Optional: the list of comma delimited projects to compute. If not set, computes all projects")
+parser.add_argument('--clocksize', type=float, default=0.9, help="Proportion of the clocksize against min(w,h)")
 
 class Scenario:
     def __init__(self,
@@ -37,17 +38,19 @@ class Scenario:
                        time, 
                        width, 
                        height,
+                       clock_size_prop,
                        show=False,
                        forceRecompute=True):
         file_name = 'output/{}_{}_{}/out{}.jpg'.format(self.project, width, height, time)
         output_image = None
         if not forceRecompute:
-            output_image = read_image(self.file_name)
+            output_image = read_image(file_name)
         if output_image == None:
             input_image = draw_clock(
                 time,
                 width,
                 height,
+                clock_size_prop,
                 self.base_circle_thickness,
                 self.base_hour_hand_thickness,
                 self.base_minute_hand_thickness,
@@ -80,8 +83,10 @@ if __name__ == '__main__':
         height = width * 960 // 640
     elif args.aspectRatio=="laptop":
         height = width * 1024 // 768
+    clock_size_prop = args.clocksize
+    projects = set(args.projects.split(","))
 
-    print(f"Args {width}x{height} Recompute all:{recomputeAll} FPS:{fps}")
+    print(f"Args {width}x{height} Recompute all:{recomputeAll} FPS:{fps} Clock size:{clock_size_prop} Projects:{projects}")
 
     scenarios = [
         Scenario(project = "forest",
@@ -99,11 +104,11 @@ if __name__ == '__main__':
                  colorStroke = "gray"),
 
         Scenario(project = "factory",
-                 prompt = ['beautiful factory nightscape', 'desolate', 'industrial', 'pipes']+DEFAULT_PHOTO,
+                 prompt = ['beautiful chemical manufacturing factory nightscape', 'desolate', 'industrial', 'pipes']+DEFAULT_PHOTO,
                  base_hour_hand_thickness = 15,
                  base_minute_hand_thickness = 10, 
                  colorFill = "black",
-                 colorStroke = "white"),
+                 colorStroke = "lightgray"),
 
         Scenario(project = "aerial",
                  prompt = ['beautiful aerial photography','from a helicopter','masterpiece','sharp focus','best quality','ultra detailed','wide-angle lens'],
@@ -131,7 +136,7 @@ if __name__ == '__main__':
                  base_hour_hand_thickness = 15,
                  base_minute_hand_thickness = 10, 
                  colorFill = "black",
-                 colorStroke = "black"),
+                 colorStroke = "white"),
 
         Scenario(project = "landscape",
                  prompt = ['breathtaking landscape', 'must-see', 'beautiful']+DEFAULT_PHOTO,
@@ -163,23 +168,24 @@ if __name__ == '__main__':
 
         Scenario(project = "beach",
                  prompt = ['beautiful beach with palm trees', 'summer', 'island', 'cinematic']+DEFAULT_PHOTO,
-                #  base_hour_hand_thickness = 8,
-                #  base_minute_hand_thickness = 8, 
                  base_hour_hand_thickness = 15,
-                 base_minute_hand_thickness = 10, 
+                 base_minute_hand_thickness = 15, 
+                #  base_hour_hand_thickness = 15,
+                #  base_minute_hand_thickness = 10, 
                  colorFill = "white",
                  colorStroke = "gray"),
     ]
 
     for scenario in scenarios:
-        if args.project != "" and args.project != scenario.project:
+        if len(projects) > 0 and not scenario.project in projects:
             continue
+        print(f"Scenario: {scenario.project}")
 
         images = []
         for time in range(1440//2):
             (hours, mins) = divmod(time, 60)
             print(f"{hours:02d}:{mins:02d} {scenario.prompt}")
-            images.append(scenario.compute_clock(time, width, height, forceRecompute = recomputeAll))
+            images.append(scenario.compute_clock(time, width, height, clock_size_prop, forceRecompute = recomputeAll))
             if len(images)<20 or len(images) % 100 == 0:
                 print("Exporting movie...")
                 scenario.export_movie(images, fps, width)
