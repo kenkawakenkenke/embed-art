@@ -35,8 +35,8 @@ function imageIndexForDate(date) {
   const hours = date.getHours() % 12;
   const minutes = date.getMinutes();
   const seconds = date.getSeconds();
-  return hours * 60 + minutes;
-  // return (minutes % 12) * 60 + seconds;
+  // return hours * 60 + minutes;
+  return (minutes % 12) * 60 + seconds;
 }
 
 const CenterSquareSpanningImage = ({ imageUrl }) => {
@@ -71,28 +71,42 @@ const CenterSquareSpanningImage = ({ imageUrl }) => {
 };
 
 const useCurrentMinuteOfDay = () => {
+  // const [seconds, setSeconds] = useState(0);
+  // console.log("test: " + seconds);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setSeconds(seconds => seconds + 1);
+  //   }, 1000);
+  //   return () => clearInterval(interval);
+  // }, []);
+
   const [currentImageIndex, setCurrentImageIndex] = useState(imageIndexForDate(new Date()));
 
   useEffect(() => {
     const checkTimeChange = () => {
       const now = new Date();
       const newIndex = imageIndexForDate(now);
+      console.log("checkTimeChange: " + newIndex);
       if (newIndex !== currentImageIndex) {
         setCurrentImageIndex(newIndex);
       }
     };
-    const intervalId = setTimeout(checkTimeChange, 10 * 1000);
-    // const intervalId = setInterval(checkTimeChange, 100);
+    // const intervalId = setTimeout(checkTimeChange, 10 * 1000);
+    const intervalId = setInterval(checkTimeChange, 1000);
+    // return () => console.log("end");
     return () => {
+      console.log("clear " + intervalId);
       clearInterval(intervalId);  // Clear the interval when the component is unmounted
     }
-  }, [currentImageIndex]);
+  }, []);
 
   return currentImageIndex;
 }
 
 function imageUrl(minuteOfDay) {
-  return `https://storage.googleapis.com/hidden-clock/factory_768_576/out${minuteOfDay % 720}.jpg`
+  // TODO: remove
+  minuteOfDay = minuteOfDay % 100;
+  return `https://storage.googleapis.com/hidden-clock/lightning_512_512/out${minuteOfDay % 720}.jpg`
 }
 
 const useLoadAnimation = (minuteOfDay) => {
@@ -137,12 +151,23 @@ const useLoadAnimation = (minuteOfDay) => {
 };
 
 const ClockPage = ({ }) => {
+
+
+  // const [seconds, setSeconds] = useState(0);
+  // console.log("test: " + seconds);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setSeconds(seconds => seconds + 1);
+  //   }, 1000);
+  //   return () => clearInterval(interval);
+  // }, []);
+
   const minuteOfDay = useCurrentMinuteOfDay();
 
   const animationInfo = useLoadAnimation(minuteOfDay);
 
   if (!animationInfo.isLoaded) {
-    return (<div>Yo</div>);
+    return (<div>Loading...</div>);
   }
 
   return (
@@ -151,8 +176,19 @@ const ClockPage = ({ }) => {
 }
 
 function App() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const onClickView = () => {
+    if (isFullscreen) {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    } else {
+      document.body.requestFullscreen();
+      setIsFullscreen(true);
+    }
+  }
+
   return (
-    <div className="App">
+    <div className="App" onClick={onClickView}>
       <ClockPage />
     </div>
   );
