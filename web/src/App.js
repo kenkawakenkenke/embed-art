@@ -46,11 +46,13 @@ const CenterSquareSpanningImage = ({ imageUrl }) => {
     const img = imgRef.current;
     const importantSize = Math.min(img.naturalWidth, img.naturalHeight);
     if (window.innerWidth > window.innerHeight) {
-      const renderHeight = Math.floor(img.naturalHeight * window.innerHeight / importantSize);
+      var renderHeight = Math.floor(img.naturalHeight * window.innerHeight / importantSize);
+      renderHeight = Math.min(renderHeight, 512);
       img.style.height = `${renderHeight}px`;
       img.style.width = 'auto';
     } else {
-      const renderWidth = Math.floor(img.naturalWidth * window.innerWidth / importantSize);
+      var renderWidth = Math.floor(img.naturalWidth * window.innerWidth / importantSize);
+      renderWidth = Math.min(renderWidth, 512);
       img.style.width = `${renderWidth}px`;
       img.style.height = 'auto';
     }
@@ -106,7 +108,7 @@ const useCurrentMinuteOfDay = () => {
 function imageUrl(minuteOfDay) {
   // TODO: remove
   minuteOfDay = minuteOfDay % 100;
-  return `https://storage.googleapis.com/hidden-clock/lightning_512_512/out${minuteOfDay % 720}.jpg`
+  return `https://storage.googleapis.com/hidden-clock/nightforest_512_512/out${minuteOfDay % 720}.jpg`
 }
 
 const useLoadAnimation = (minuteOfDay) => {
