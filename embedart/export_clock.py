@@ -45,6 +45,8 @@ class Scenario:
         output_image = None
         if not forceRecompute:
             output_image = read_image(file_name)
+            if output_image != None:
+                return output_image
         if output_image == None:
             input_image = draw_clock(
                 time,
@@ -186,10 +188,10 @@ if __name__ == '__main__':
             (hours, mins) = divmod(time, 60)
             print(f"{hours:02d}:{mins:02d} {scenario.prompt}")
             images.append(scenario.compute_clock(time, width, height, clock_size_prop, forceRecompute = recomputeAll))
-            if len(images)<20 or len(images) % 100 == 0:
-                print("Exporting movie...")
-                scenario.export_movie(images, fps, width)
+            # if len(images)<20 or len(images) % 100 == 0:
+            #     print("Exporting movie...")
+            #     scenario.export_movie(images, fps, width)
         
-        scenario.export_movie(images, fps, width)
+        # scenario.export_movie(images, fps, width)
         print(f"Done {scenario.project}")
 
